@@ -59,7 +59,27 @@ public class MemorySpace {
 	 */
 	public int malloc(int length) {		
 		//// Replace the following statement with your code
-		return -1;
+		ListIterator itr = freeList.iterator();
+		while(itr.hasNext() &&itr.current.block.length<length)
+		{
+			itr.next();
+		}
+		if(itr.current==null)
+		{
+			return -1;
+		}
+		MemoryBlock newblock = new MemoryBlock(itr.current.block.baseAddress,length);
+		if(itr.current.block.length == length)
+		{
+			this.freeList.remove(itr.current);
+		}
+		else
+		{
+			itr.current.block.baseAddress = itr.current.block.baseAddress + length;
+			itr.current.block.length = itr.current.block.length - length;
+		}
+		this.allocatedList.addLast(newblock);
+		return newblock.baseAddress;
 	}
 
 	/**
@@ -71,7 +91,23 @@ public class MemorySpace {
 	 *            the starting address of the block to freeList
 	 */
 	public void free(int address) {
-		//// Write your code here
+		ListIterator aloc = allocatedList.iterator();
+		if(this.allocatedList.getSize()==0){
+			throw new IllegalArgumentException("index must be between 0 and size");
+		}else{
+		while (aloc.hasNext() &&aloc.current.block.baseAddress!=address) {			
+			aloc.next();		
+			
+		}
+		if(aloc.current==null){
+			return;
+
+		}
+        MemoryBlock newblock = new MemoryBlock(address,aloc.current.block.length);
+		this.allocatedList.remove(aloc.current);
+		this.freeList.addLast(newblock);
+
+	}
 	}
 	
 	/**
@@ -88,7 +124,22 @@ public class MemorySpace {
 	 * In this implementation Malloc does not call defrag.
 	 */
 	public void defrag() {
-		/// TODO: Implement defrag test
-		//// Write your code here
+		for(int i=0;i<this.freeList.getSize();i++){
+			MemoryBlock blook1 =this.freeList.getBlock(i);
+			int sum = blook1.baseAddress+blook1.length;	
+			for(int j=0;j<this.freeList.getSize();j++){
+				MemoryBlock blook2 =this.freeList.getBlock(j);
+				if(sum==blook2.baseAddress){
+					MemoryBlock newbBlock = new MemoryBlock(sum,blook1.length+blook2.length);
+					this.freeList.remove(j);
+					this.freeList.remove(i);
+					this.freeList.add(i, newbBlock);				
+
+
+				}
+			}	
+		}
+		
+		
 	}
 }
